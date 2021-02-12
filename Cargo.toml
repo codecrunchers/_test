@@ -1,0 +1,23 @@
+[package]
+authors = ["Alan Ryan <alan@codecrunchers.ie>"]
+edition = "2018"
+name = "inscribe"
+version = "0.1.0"
+
+
+[dependencies]
+futures = "0.3"
+unicode-segmentation = "1.7.1"
+porter-stemmer = "0.1.2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+[dependencies.reqwest]
+features = ["json"]
+version = "0.11"
+
+[dependencies.tokio]
+features = ["full"]
+version = "1.2.0"
+
