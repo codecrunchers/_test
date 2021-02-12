@@ -1,14 +1,24 @@
-use serde_json::Value;
+pub const ARTICLE_COUNT: i32 = 200;
 
-pub const ARTICLE_COUNT: i32 = 2;
+pub const MECHANICAL_SYMPATHY_DIAL: usize = 100; // how may concurrent  requests we will make
 
-#[derive(Deserialize, Debug)]
-pub struct PartialResponse {
-    //pub query: std::collections::HashMap<String, std::collections::HashMap<String, Page>>,
-    pub query: Pages, // std::collections::HashMap<String, std::collections::HashMap<String, Page>>,
+//wrap a handy response type for prettier code
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+
+#[derive(Debug, Default)]
+pub struct Record {
+    pub id: String,
+    pub uri: String,
+    pub title: String,
+    pub stems: Vec<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
+pub struct WikiResponse {
+    pub query: Pages,
+}
+
+#[derive(Deserialize, Debug, Default)]
 pub struct Pages {
     pub pages: std::collections::HashMap<String, Page>,
 }
