@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
 mod types;
+mod rankers;
 
 use futures::stream::StreamExt;
 use types::{WikiResponse, ARTICLE_COUNT, Record, Result, MECHANICAL_SYMPATHY_DIAL};
@@ -8,6 +9,7 @@ use serde_json::from_str as marshaller;
 use std::{io, io::prelude::*};
 use porter_stemmer::stem;
 use unicode_segmentation::UnicodeSegmentation;
+use rankers::{NaiveWordCounterRanker,Ranker};
 
 
 #[tokio::main]
@@ -17,9 +19,9 @@ async fn main() -> Result<()>{
 
 /// Combine parallel http requests with thread interleaved async io 
 /// to get ARTICLE_COUNT wikipedia records with full extracts in plaintext
-/// WikiP have better processors than us, and String parsing is xxpensive, 
+/// WikiP have better processors than us, and String parsing is expensive, 
 /// this way we do not have to filter out <markdown tags>///
-/// # Returns a List of index_pages, meaning a page id, uri and stems
+/// # Returns a List of index_pages, meaning a page id, uri and stems from stemming Alg
 async fn build_database() -> Result<Vec<Record>> {
     let article_count = (1..ARTICLE_COUNT + 1).collect::<Vec<i32>>();
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
@@ -49,6 +51,7 @@ async fn build_database() -> Result<Vec<Record>> {
         .filter(|indexed_page| indexed_page.id != "") //failed calls stipped
         .collect::<Vec<Record>>();
 
+
     Ok(db)
 
 }
@@ -60,31 +63,26 @@ async fn build_database() -> Result<Vec<Record>> {
 /// * `db` - The 'database'
 fn enable_search_mode(mut db: Vec<Record>) ->  Result<()>{
 
-    println!("Welcome to WikiSearch: enter a keyword");
+    println!("\r\n\r\nWelcome to WikiSearch: enter a keyword");
 
     for line in io::stdin().lock().lines() {
-        //println!("length = {}", line?.len());
         let search_results : Vec<()> = db.iter_mut()
             .filter(|r| r.stems.contains(
                     &stem(
                         &line.as_ref()
                         .unwrap_or(&"".to_string())))
-                )
+            )
             .map(|r|  println!("Title: {:?} ({:?}) ", r.title, r.uri,) )
             .collect();
 
-        println!("{:?} Results",search_results.len());
+//        let results = NaiveWordCounterRanker::rank(search_results, "alan".to_string());
+
+        println!("{:?} Results", search_results.len());
 
     }
 
-    /*let search_results : Vec<()> = db.into_iter()
-      .filter(|r| r.stems.contains(line))
-      .map(|r|  println!("{:?}", r.uri) )
-      .collect();
-      */
-    //    }
-Ok(())
-    }
+    Ok(())
+}
 
 
 /// Generate a porter_stemmer based list of word stems from the article
@@ -93,9 +91,22 @@ Ok(())
 ///
 /// * `text` - the plaintext article from wikipedia
 fn stemmer(text: String, uri: String) -> Vec<String> {
-
-    println!("Stemming..{}    " , uri);
-    let original = text.as_str();
-    let tokenised_sentence = original.clone().unicode_words();
+    print!("Stemming..{} ..........   " , uri);
+    let tokenised_sentence = text.as_str().clone().unicode_words();
     tokenised_sentence.map(stem).collect::<Vec<String>>()
+}
+
+
+#[cfg(test)]
+mod tests{
+    use crate::stemmer;
+
+    #[test]
+    fn test_stemmer(){
+        let sentence =" he ran she runs they run he is a runner".to_string();
+        assert_eq!(10, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence, "".into()));
+
+        let sentence = "".to_string();
+        assert_eq!(0, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence, "".into()))
+    }
 }
