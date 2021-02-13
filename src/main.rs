@@ -13,7 +13,6 @@ use types::{WikiResponse, ARTICLE_COUNT, Record, Result, MECHANICAL_SYMPATHY_DIA
 use serde_json::from_str as marshaller;
 use std::{io, io::prelude::*};
 use porter_stemmer::stem;
-use unicode_segmentation::UnicodeSegmentation;
 use rankers::{Ranker, WordCountRanker};
 use log::{info,debug};
 use std::time::Instant;
@@ -22,13 +21,13 @@ use stemmers::{SimplePorterStemmer, IStemmer};
 
 //Availabe text Stemmers
 enum Stemmer { 
-    Porter,
+    porter,
 }
 
 
 //Availabe Ranking Algs
 enum RankerAlg {
-    wordCount,
+   WordCount,
 }
 
 
@@ -37,9 +36,9 @@ async fn main() -> Result<()>{
     env_logger::init();
     let start = Instant::now();
 
-    build_database(Stemmer::Porter).await.and_then(|db| {
+    build_database(Stemmer::porter).await.and_then(|db| {
         println!("Fetch and Index time: {:?}", start.elapsed());
-        enable_search_mode(db, RankerAlg::wordCount)
+        enable_search_mode(db, RankerAlg::WordCount)
     })
 }
 
@@ -55,7 +54,7 @@ async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
 
     let stemmer = match stemmer {
-        Porter => SimplePorterStemmer{},
+        _porter => SimplePorterStemmer{},
     };
 
     let db =  futures::stream::iter(article_count.into_iter().map(|_| async move {
@@ -100,7 +99,7 @@ fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()
     println!("{}", "\r\n\r\nWelcome to WikiSearch: enter a keyword, ^C to exit");
 
     let alg = match ranking_alg {
-        wordCount => WordCountRanker,
+        _WordCount => WordCountRanker,
     };
 
     for keyword in io::stdin().lock().lines()  {
@@ -138,17 +137,6 @@ fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()
 }
 
 
-/// Generate a porter_stemmer based list of 'stems' from the article text
-///
-/// # Arguments
-///
-/// * `text` - the plaintext article from wikipedia
-fn _stemmer(text: String) -> Vec<String> {
-    debug!("Stemming");
-    let text  = text.as_str().to_lowercase();
-    let tokenised_sentence = text.unicode_words();
-    tokenised_sentence.map(stem).collect::<Vec<String>>()
-}
 
 
 /** 

@@ -3,6 +3,11 @@ use porter_stemmer::stem;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub trait IStemmer {
+    /// Generate a based list of 'stems' from the article text
+    ///
+    /// # Arguments
+    ///
+    /// * `text` - the plaintext article from wikipedia
     fn istem(self, text: String) -> Vec<String>;
 }
 
@@ -16,6 +21,11 @@ impl Clone for SimplePorterStemmer {
 }
 
 impl IStemmer for SimplePorterStemmer {
+    /// Generate a porter_stemmer based list of 'stems' from the article text
+    ///
+    /// # Arguments
+    ///
+    /// * `text` - the plaintext article from wikipedia
     fn istem(self, text: String) -> Vec<String> {
         debug!("Stemming");
         let text = text.as_str().to_lowercase();
