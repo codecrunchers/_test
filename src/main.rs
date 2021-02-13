@@ -157,21 +157,14 @@ fn tally_words(untallied: Vec<String>) -> HashMap<String, u32> {
 
 #[cfg(test)]
 mod tests{
-    use crate::{stemmer, tally_words};
+    use crate::{tally_words, SimplePorterStemmer, IStemmer};
 
     #[test]
     fn test_tally_ho(){
         let sentence =" he ran she runs they run he is a runner".to_string();
         let response: std::collections::HashMap<String,u32> = [("he".into(),2),("a".into(),1),("she".into(),1),("run".into(),2),("ran".into(),1),("runner".into(),1),("thei".into(),1),("is".into(),1)].iter().cloned().collect();
-        assert_eq!(response,tally_words(stemmer(sentence.clone())))
+        let stemmer  = SimplePorterStemmer{};
+        assert_eq!(response,tally_words(stemmer.istem(sentence.clone())))
     }
 
-    #[test]
-    fn test_stemmer(){
-        let sentence =" he ran she runs they run he is a runner".to_string();
-        assert_eq!(10, stemmer(sentence.clone()).len(), "{:?}", stemmer(sentence));
-
-        let sentence = "".to_string();
-        assert_eq!(0, stemmer(sentence.clone()).len(), "{:?}", stemmer(sentence))
-    }
 }

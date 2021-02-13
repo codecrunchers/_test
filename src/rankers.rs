@@ -58,7 +58,8 @@ mod tests {
 
     #[test]
     fn test_word_ranker_basic() {
-        let results = WordCountRanker::rank(
+        let ranker = WordCountRanker;
+        let results = ranker.rank(
             vec![&mut Record {
                 id: "test".into(),
                 uri: "test".into(),
@@ -75,7 +76,8 @@ mod tests {
 
     #[test]
     fn test_word_ranker_empty() {
-        let results = WordCountRanker::rank(vec![], "".into());
+        let ranker = WordCountRanker;
+        let results = WordCountRanker.rank(vec![], "".into());
         assert!(results.is_ok());
         let results = results.unwrap();
         assert_eq!(0, results.len())

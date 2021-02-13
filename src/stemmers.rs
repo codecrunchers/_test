@@ -33,3 +33,28 @@ impl IStemmer for SimplePorterStemmer {
         tokenised_sentence.map(stem).collect::<Vec<String>>()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{IStemmer, SimplePorterStemmer};
+
+    #[test]
+    fn test_stemmer() {
+        let stemmer = SimplePorterStemmer {};
+        let sentence = " he ran she runs they run he is a runner".to_string();
+        assert_eq!(
+            10,
+            stemmer.istem(sentence.clone()).len(),
+            "{:?}",
+            stemmer.istem(sentence)
+        );
+
+        let sentence = "".to_string();
+        assert_eq!(
+            0,
+            stemmer.istem(sentence.clone()).len(),
+            "{:?}",
+            stemmer.istem(sentence)
+        )
+    }
+}
