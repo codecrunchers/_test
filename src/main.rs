@@ -9,7 +9,7 @@ use serde_json::from_str as marshaller;
 use std::{io, io::prelude::*};
 use porter_stemmer::stem;
 use unicode_segmentation::UnicodeSegmentation;
-use rankers::{NaiveWordCounterRanker,Ranker};
+use rankers::{NaiveWordCounterRanker, Ranker};
 
 
 #[tokio::main]
@@ -21,7 +21,7 @@ async fn main() -> Result<()>{
 /// to get ARTICLE_COUNT wikipedia records with full extracts in plaintext
 /// WikiP have better processors than us, and String parsing is expensive, 
 /// this way we do not have to filter out <markdown tags>///
-/// # Returns a List of index_pages, meaning a page id, uri and stems from stemming Alg
+/// # Returns a List of indexed_pages, i.e { a page id, uri, stems (from stemming Alg)}
 async fn build_database() -> Result<Vec<Record>> {
     let article_count = (1..ARTICLE_COUNT + 1).collect::<Vec<i32>>();
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
@@ -61,9 +61,14 @@ async fn build_database() -> Result<Vec<Record>> {
 /// # Arguments
 ///
 /// * `db` - The 'database'
-fn enable_search_mode(mut db: Vec<Record>) ->  Result<()>{
+/// Returns ()  - nothing
+fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 
-    println!("\r\n\r\nWelcome to WikiSearch: enter a keyword");
+   println!("\r\n\r\nWelcome to WikiSearch: enter a keyword");
+   let results = NaiveWordCounterRanker::rank1(&db, "alan".to_string());
+   let mut results = results.unwrap();
+   results.sort();
+   println!("{:?}", results);
 
     for line in io::stdin().lock().lines() {
         let search_results : Vec<()> = db.iter_mut()
@@ -75,7 +80,6 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()>{
             .map(|r|  println!("Title: {:?} ({:?}) ", r.title, r.uri,) )
             .collect();
 
-//        let results = NaiveWordCounterRanker::rank(search_results, "alan".to_string());
 
         println!("{:?} Results", search_results.len());
 
@@ -85,11 +89,12 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()>{
 }
 
 
-/// Generate a porter_stemmer based list of word stems from the article
+/// Generate a porter_stemmer based list of 'stems' from the article text
 ///
 /// # Arguments
 ///
 /// * `text` - the plaintext article from wikipedia
+/// * `uri` - for feedback only
 fn stemmer(text: String, uri: String) -> Vec<String> {
     print!("Stemming..{} ..........   " , uri);
     let tokenised_sentence = text.as_str().clone().unicode_words();

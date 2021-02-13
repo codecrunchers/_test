@@ -1,4 +1,4 @@
-pub const ARTICLE_COUNT: i32 = 200;
+pub const ARTICLE_COUNT: i32 = 20;
 
 pub const MECHANICAL_SYMPATHY_DIAL: usize = 100; // how may concurrent  requests we will make
 
