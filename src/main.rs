@@ -1,6 +1,6 @@
 ///! Wikipedia Search App -  Entry point for application
 ///1. Fetch number of articles, 'stem' the plaintext body and sum the word occurence per link/hit
-///2. Enable Search; first find matching keywords, the applies an implementation of a chosen Ranker
+///2. Enable Search; first find matching keywords, then applies an implementation of a chosen Ranker
 
 #[macro_use]
 extern crate serde_derive;
@@ -22,12 +22,14 @@ use stemmers::{SimplePorterStemmer, IStemmer};
 //Availabe text Stemmers
 enum Stemmer { 
     porter,
+    otherNotImplmentedYet,
 }
 
 
 //Availabe Ranking Algs
 enum RankerAlg {
-   WordCount,
+    wordCount,
+    otherNotImplmentedYet
 }
 
 
@@ -38,7 +40,7 @@ async fn main() -> Result<()>{
 
     build_database(Stemmer::porter).await.and_then(|db| {
         println!("Fetch and Index time: {:?}", start.elapsed());
-        enable_search_mode(db, RankerAlg::WordCount)
+        enable_search_mode(db, RankerAlg::wordCount)
     })
 }
 
@@ -60,11 +62,11 @@ async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
     let db =  futures::stream::iter(article_count.into_iter().map(|_| async move {
         match reqwest::get("https://en.wikipedia.org/w/api.php?action=query&generator=random&grnnamespace=0&grnlimit=1&prop=info%7Cextracts&inprop=url&explaintext&format=json").await {
             Ok(resp) => match resp.text().await {
-                Ok(json) => {
-                    let response :WikiResponse = marshaller(&json).unwrap_or_default();
+                Ok(json) => { //now build the Response Object 
+                    let response :WikiResponse = marshaller(&json).unwrap_or_default(); 
                     response.query.pages.iter().map(|page| Record {
                         id: page.0.to_string(),
-                        uri: page.1.fullurl.to_string(),//.clone(),
+                        uri: page.1.fullurl.to_string(),
                         stems:  tally_words(stemmer.istem(format!("{} {}",page.1.title ,page.1.extract.to_string()))),
                         title: page.1.title.to_string(),
                     }).collect::<Vec<Record>>()
@@ -73,12 +75,11 @@ async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
             },
             Err(_) => Default::default()
         }
-    }))
-    .buffer_unordered(MECHANICAL_SYMPATHY_DIAL) 
-        .collect::<Vec<_>>()
+    })).buffer_unordered(MECHANICAL_SYMPATHY_DIAL)
+    .collect::<Vec<_>>()
         .await 
         .into_iter()
-        .flatten()            
+        .flatten() //flatten the nested structure
         .filter(|indexed_page| !indexed_page.id.is_empty()) //failed calls stripped
         .collect::<Vec<Record>>();
 
@@ -99,7 +100,7 @@ fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()
     println!("{}", "\r\n\r\nWelcome to WikiSearch: enter a keyword, ^C to exit");
 
     let alg = match ranking_alg {
-        _WordCount => WordCountRanker,
+        _wordCount => WordCountRanker,
     };
 
     for keyword in io::stdin().lock().lines()  {
@@ -114,7 +115,6 @@ fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()
                     )  
                     .collect::<Vec<_>>(),
                     stem(&keyword.as_str().to_lowercase()))
-                    //keyword.to_string())
                     .unwrap();
 
                 debug!("{:?}", search_results);
@@ -142,7 +142,7 @@ fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()
 /** 
  * With rt-tokio, these are being run by tasks after i/o commpletes on 
  * the allocated thread
-**/
+ **/
 fn tally_words(untallied: Vec<String>) -> HashMap<String, u32> {
     let mut counts = HashMap::new();
 
