@@ -44,38 +44,33 @@ impl Ranker for WordCountRanker {
     }
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests {
-    use crate::{NaiveRanker, Ranker};
-
-    #[test]
-    fn test_word_ranker_default() {
-        let ranker = WordCountRanker;
-        let results = ranker.ranker(vec![Default::default()], "".into());
-        assert_eq!(1, results.len());
-        assert_eq!(results.uri, "".into())
-    }
+    use crate::types::Record;
+    use crate::{Ranker, WordCountRanker};
 
     #[test]
     fn test_word_ranker_basic() {
-        let ranker = WordCountRanker;
-        let results = ranker.ranker(
-            vec![Record {
-                id: "test",
-                uri: "test",
-                title: "test",
-                stems: [("the", 2)].into_iter().clone().collect(),
+        let results = WordCountRanker::rank(
+            vec![&mut Record {
+                id: "test".into(),
+                uri: "test".into(),
+                title: "test".into(),
+                stems: [("the".into(), 2)].iter().cloned().collect(),
             }],
             "".into(),
         );
+        assert!(results.is_ok());
+        let results = results.unwrap();
         assert_eq!(1, results.len());
-        assert_eq!(results.uri, "test".into())
+        assert_eq!(results.get(0).unwrap(), &(0, "test".into()))
     }
 
     #[test]
     fn test_word_ranker_empty() {
-        let ranker = WordCountRanker;
-        let results = ranker.ranker(vec![], "".into());
+        let results = WordCountRanker::rank(vec![], "".into());
+        assert!(results.is_ok());
+        let results = results.unwrap();
         assert_eq!(0, results.len())
     }
 }
