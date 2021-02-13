@@ -22,7 +22,13 @@ use stemmers::{SimplePorterStemmer, IStemmer};
 
 //Availabe text Stemmers
 enum Stemmer { 
-    PORTER,
+    Porter,
+}
+
+
+//Availabe Ranking Algs
+enum RankerAlg {
+    wordCount,
 }
 
 
@@ -31,9 +37,9 @@ async fn main() -> Result<()>{
     env_logger::init();
     let start = Instant::now();
 
-    build_database(Stemmer::PORTER).await.and_then(|db| {
+    build_database(Stemmer::Porter).await.and_then(|db| {
         println!("Fetch and Index time: {:?}", start.elapsed());
-        enable_search_mode(db)
+        enable_search_mode(db, RankerAlg::wordCount)
     })
 }
 
@@ -49,7 +55,7 @@ async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
 
     let stemmer = match stemmer {
-        PORTER => SimplePorterStemmer{},
+        Porter => SimplePorterStemmer{},
     };
 
     let db =  futures::stream::iter(article_count.into_iter().map(|_| async move {
@@ -89,17 +95,20 @@ async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
 /// * `db` - The 'database'
 /// # Returns 
 /// * () / nothing
-fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
+fn enable_search_mode(mut db: Vec<Record>, ranking_alg: RankerAlg) ->  Result<()> {
 
     println!("{}", "\r\n\r\nWelcome to WikiSearch: enter a keyword, ^C to exit");
 
+    let alg = match ranking_alg {
+        wordCount => WordCountRanker,
+    };
 
     for keyword in io::stdin().lock().lines()  {
         let start = Instant::now();
         println!();
         match &keyword.as_ref() {
             Ok(keyword) => {
-                let search_results :Vec<(u32,String)> = WordCountRanker::rank(
+                let search_results :Vec<(u32,String)> = alg.clone().rank(
                     db.iter_mut()
                     .filter(|record| 
                         record.stems.contains_key(&stem(&keyword.as_str().to_lowercase()))//find Records with matching stems in DB

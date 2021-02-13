@@ -8,17 +8,24 @@ use log::{debug, info};
  * no traits for collections yet in rust, so this is verbose to abstract
  **/
 pub trait Ranker {
-    fn rank(results: Vec<&mut Record>, keyword: String) -> Result<Vec<(u32, String)>>;
+    fn rank(self, results: Vec<&mut Record>, keyword: String) -> Result<Vec<(u32, String)>>;
 }
 
 ///Trivial Ranker, will just rank on hit count
+#[derive(Copy)]
 pub struct WordCountRanker;
+
+impl Clone for WordCountRanker {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 /**
  * This is a simplistic ranker, it just sums the total count of stems matched for each page
  **/
 impl Ranker for WordCountRanker {
-    fn rank(results: Vec<&mut Record>, keyword: String) -> Result<Vec<(u32, String)>> {
+    fn rank(self, results: Vec<&mut Record>, keyword: String) -> Result<Vec<(u32, String)>> {
         info!(
             "WordCountRanker searching for {} in Results Set of Size {}",
             keyword,
