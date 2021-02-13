@@ -1,4 +1,4 @@
-pub const ARTICLE_COUNT: i32 = 20;
+pub const ARTICLE_COUNT: i32 = 2;
 
 pub const MECHANICAL_SYMPATHY_DIAL: usize = 100; // how may concurrent  requests we will make
 
@@ -10,7 +10,9 @@ pub struct Record {
     pub id: String,
     pub uri: String,
     pub title: String,
-    pub stems: Vec<String>,
+    //This is a Lookup table for word and occurences, the Hashmap is order n, btree would be faster
+    //if we were updating data only
+    pub stems: std::collections::HashMap<String, u32>,
 }
 
 #[derive(Deserialize, Debug, Default)]

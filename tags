@@ -1,0 +1,45 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/alan/devel/inscribe/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	/p5.9.20210110.0/
+NaiveRanker	src/rankers.rs	/^impl Ranker for NaiveRanker {$/;"	c
+NaiveRanker	src/rankers.rs	/^pub struct NaiveRanker;$/;"	s
+Page	src/types.rs	/^pub struct Page {$/;"	s
+Pages	src/types.rs	/^pub struct Pages {$/;"	s
+Ranker	src/rankers.rs	/^pub trait Ranker {$/;"	i
+Record	src/types.rs	/^pub struct Record {$/;"	s
+Result	src/types.rs	/^pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;$/;"	t
+WikiResponse	src/types.rs	/^pub struct WikiResponse {$/;"	s
+WordCountRanker	src/rankers.rs	/^impl Ranker for WordCountRanker {$/;"	c
+WordCountRanker	src/rankers.rs	/^pub struct WordCountRanker;$/;"	s
+build_database	src/main.rs	/^async fn build_database() -> Result<Vec<Record>> {$/;"	f
+enable_search_mode	src/main.rs	/^fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {$/;"	f
+extract	src/types.rs	/^    pub extract: String,$/;"	m	struct:Page
+fullurl	src/types.rs	/^    pub fullurl: String,$/;"	m	struct:Page
+id	src/types.rs	/^    pub id: String,$/;"	m	struct:Record
+main	src/main.rs	/^async fn main() -> Result<()>{$/;"	f
+pageid	src/types.rs	/^    pub pageid: i32,$/;"	m	struct:Page
+pages	src/types.rs	/^    pub pages: std::collections::HashMap<String, Page>,$/;"	m	struct:Pages
+query	src/types.rs	/^    pub query: Pages,$/;"	m	struct:WikiResponse
+rank	src/rankers.rs	/^    fn rank(results: &Vec<Record>, _keyword: String) -> Result<Vec<(usize, String)>> {$/;"	P	implementation:NaiveRanker
+rank	src/rankers.rs	/^    fn rank(results: &Vec<Record>, keyword: String) -> Result<Vec<(usize, String)>> {$/;"	P	implementation:WordCountRanker
+rank	src/rankers.rs	/^    fn rank(results: &Vec<Record>, keyword: String) -> Result<Vec<(usize, String)>>;$/;"	P	interface:Ranker
+rankers	src/main.rs	/^mod rankers;$/;"	n
+stemmer	src/main.rs	/^fn stemmer(text: String, uri: String) -> Vec<String> {$/;"	f
+stems	src/types.rs	/^    pub stems: Vec<String>,$/;"	m	struct:Record
+test_rank_empty	src/rankers.rs	/^    fn test_rank_empty() {$/;"	f	module:tests
+test_rank_one_rec	src/rankers.rs	/^    fn test_rank_one_rec() {$/;"	f	module:tests
+test_stemmer	src/main.rs	/^    fn test_stemmer(){$/;"	f	module:tests
+tests	src/main.rs	/^mod tests{$/;"	n
+tests	src/rankers.rs	/^mod tests {$/;"	n
+title	src/types.rs	/^    pub title: String,$/;"	m	struct:Page
+title	src/types.rs	/^    pub title: String,$/;"	m	struct:Record
+types	src/main.rs	/^mod types;$/;"	n
+uri	src/types.rs	/^    pub uri: String,$/;"	m	struct:Record
