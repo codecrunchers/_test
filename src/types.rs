@@ -1,10 +1,13 @@
-pub const ARTICLE_COUNT: i32 = 2;
-
-pub const MECHANICAL_SYMPATHY_DIAL: usize = 100; // how may concurrent  requests we will make
-
+//Articles to fetch
+pub const ARTICLE_COUNT: i32 = 200;
+// how may concurrent  requests we will make
+pub const MECHANICAL_SYMPATHY_DIAL: usize = 100;
 //wrap a handy response type for prettier code
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
+/**
+ * This is an index article with keywords stemmed and summed
+ **/
 #[derive(Debug, Default)]
 pub struct Record {
     pub id: String,
@@ -15,6 +18,7 @@ pub struct Record {
     pub stems: std::collections::HashMap<String, u32>,
 }
 
+// These are min objects required to marshall response
 #[derive(Deserialize, Debug, Default)]
 pub struct WikiResponse {
     pub query: Pages,

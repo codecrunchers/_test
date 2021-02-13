@@ -1,3 +1,7 @@
+///! Entry point for application
+///1. Fetch number of articles, stemm the plaintext body and sum the word occurence per link
+///Enable Search first find matching keywords, the a applies an implementation of a Ranker
+
 #[macro_use]
 extern crate serde_derive;
 mod types;
@@ -19,6 +23,7 @@ use std::time::Instant;
 async fn main() -> Result<()>{
     env_logger::init();
     let start = Instant::now();
+
     build_database().await.and_then(|db| {
         println!("Fetch and Index time: {:?}", start.elapsed());
         enable_search_mode(db)
@@ -32,7 +37,7 @@ async fn main() -> Result<()>{
 /// # Returns a List of indexed_pages, i.e { a page id, uri, stems (from stemming Alg)}
 async fn build_database() -> Result<Vec<Record>> {
     let article_count = (1..ARTICLE_COUNT + 1).collect::<Vec<i32>>();
-    info!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
+    println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
 
     let db =  futures::stream::iter(article_count.into_iter().map(|_| async move {
         match reqwest::get("https://en.wikipedia.org/w/api.php?action=query&generator=random&grnnamespace=0&grnlimit=1&prop=info%7Cextracts&inprop=url&explaintext&format=json").await {
@@ -42,7 +47,7 @@ async fn build_database() -> Result<Vec<Record>> {
                     response.query.pages.iter().map(|page| Record {
                         id: page.0.to_string(),
                         uri: page.1.fullurl.clone().to_string(),
-                        stems: tally_words(stemmer(format!("{} {}",page.1.title.clone().to_string(),page.1.extract.to_string()), page.1.fullurl.to_string())),
+                        stems: tally_words(stemmer(format!("{} {}",page.1.title.clone().to_string(),page.1.extract.to_string()))), //include page title in indexing
                         title: page.1.title.to_string(),
                     }).collect::<Vec<Record>>()
                 }
@@ -53,7 +58,7 @@ async fn build_database() -> Result<Vec<Record>> {
     }))
     .buffer_unordered(MECHANICAL_SYMPATHY_DIAL) 
         .collect::<Vec<_>>()
-        .await
+        .await 
         .into_iter()
         .flat_map(|indexed_page| indexed_page)       
         .filter(|indexed_page| indexed_page.id != "") //failed calls stripped
@@ -69,34 +74,35 @@ async fn build_database() -> Result<Vec<Record>> {
 /// # Arguments
 ///
 /// * `db` - The 'database'
-/// Returns ()  - nothing
+/// # Returns 
+/// * () / nothing
 fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 
    println!("{}", "\r\n\r\nWelcome to WikiSearch: enter a keyword, ^C to exit");
 
 
-   for line in io::stdin().lock().lines()  {
+   for keyword in io::stdin().lock().lines()  {
       let start = Instant::now();
-       match &line.as_ref() {
-           Ok(line) => {
+      println!();
+       match &keyword.as_ref() {
+           Ok(keyword) => {
                let search_results :Vec<(u32,String)> = WordCountRanker::rank(
                    db.iter_mut()
-                   .filter(|r| 
-                       r.stems.contains_key(&stem(line))
+                   .filter(|record| 
+                       record.stems.contains_key(&stem(&keyword.as_str().to_lowercase()))//find Records with matching stems in DB
                    )  
-                   .map(|r| r)
                    .collect::<Vec<_>>(),
-                   line.to_string()).unwrap();
+                   keyword.to_string()).unwrap();
 
                debug!("{:?}", search_results);
 
                for (rank, search_result) in search_results.iter().enumerate() {
-                   println!("{:} - {:?} [Word Hits {:?}]", rank, search_result.1, search_result.0);
+                   println!("{} \t (hits {})\t{}", rank+1, search_result.0, search_result.1);
                }
 
                println!("{:?} Results for {:?} in {:?} \r\n",
                    search_results.len(),            
-                   &line,
+                   &keyword,
                    start.elapsed(),
                    );
            },
@@ -114,9 +120,10 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 ///
 /// * `text` - the plaintext article from wikipedia
 /// * `uri` - for feedback only
-fn stemmer(text: String, uri: String) -> Vec<String> {
-    info!("Stemming..{} " , uri);
-    let tokenised_sentence = text.as_str().clone().unicode_words();
+fn stemmer(text: String) -> Vec<String> {
+    debug!("Stemming");
+    let text  = text.as_str().to_lowercase();
+    let tokenised_sentence = text.unicode_words();
     tokenised_sentence.map(stem).collect::<Vec<String>>()
 }
 
@@ -143,15 +150,15 @@ mod tests{
     fn test_tally_ho(){
         let sentence =" he ran she runs they run he is a runner".to_string();
         let response: std::collections::HashMap<String,u32> = [("he".into(),2),("a".into(),1),("she".into(),1),("run".into(),2),("ran".into(),1),("runner".into(),1),("thei".into(),1),("is".into(),1)].iter().cloned().collect();
-        assert_eq!(response,tally_words(stemmer(sentence.clone(), "".into())))
+        assert_eq!(response,tally_words(stemmer(sentence.clone())))
     }
 
     #[test]
     fn test_stemmer(){
         let sentence =" he ran she runs they run he is a runner".to_string();
-        assert_eq!(10, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence, "".into()));
+        assert_eq!(10, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence));
 
         let sentence = "".to_string();
-        assert_eq!(0, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence, "".into()))
+        assert_eq!(0, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence))
     }
 }

@@ -11,6 +11,7 @@ pub trait Ranker {
     fn rank(results: Vec<&mut Record>, keyword: String) -> Result<Vec<(u32, String)>>;
 }
 
+///Trivial Ranker, will just rank on hit count
 pub struct WordCountRanker;
 
 /**
@@ -48,16 +49,32 @@ mod tests {
     use crate::{NaiveRanker, Ranker};
 
     #[test]
-    fn test_rank_one_rec() {
-        let ranker = NaiveRanker;
+    fn test_word_ranker_default() {
+        let ranker = WordCountRanker;
         let results = ranker.ranker(vec![Default::default()], "".into());
         assert_eq!(1, results.len());
         assert_eq!(results.uri, "".into())
     }
 
     #[test]
-    fn test_rank_empty() {
-        let ranker = NaiveRanker;
+    fn test_word_ranker_basic() {
+        let ranker = WordCountRanker;
+        let results = ranker.ranker(
+            vec![Record {
+                id: "test",
+                uri: "test",
+                title: "test",
+                stems: [("the", 2)].into_iter().clone().collect(),
+            }],
+            "".into(),
+        );
+        assert_eq!(1, results.len());
+        assert_eq!(results.uri, "test".into())
+    }
+
+    #[test]
+    fn test_word_ranker_empty() {
+        let ranker = WordCountRanker;
         let results = ranker.ranker(vec![], "".into());
         assert_eq!(0, results.len())
     }
