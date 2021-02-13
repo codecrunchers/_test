@@ -375,6 +375,7 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "futures",
+ "lazy_static",
  "log",
  "porter-stemmer",
  "reqwest",

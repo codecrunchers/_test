@@ -6,6 +6,7 @@
 extern crate serde_derive;
 mod types;
 mod rankers;
+mod stemmers;
 use std::collections::HashMap;
 use futures::stream::StreamExt;
 use types::{WikiResponse, ARTICLE_COUNT, Record, Result, MECHANICAL_SYMPATHY_DIAL};
@@ -16,7 +17,13 @@ use unicode_segmentation::UnicodeSegmentation;
 use rankers::{Ranker, WordCountRanker};
 use log::{info,debug};
 use std::time::Instant;
+use stemmers::{SimplePorterStemmer, IStemmer};
 
+
+//Availabe text Stemmers
+enum Stemmer { 
+    PORTER,
+}
 
 
 #[tokio::main]
@@ -24,7 +31,7 @@ async fn main() -> Result<()>{
     env_logger::init();
     let start = Instant::now();
 
-    build_database().await.and_then(|db| {
+    build_database(Stemmer::PORTER).await.and_then(|db| {
         println!("Fetch and Index time: {:?}", start.elapsed());
         enable_search_mode(db)
     })
@@ -37,9 +44,13 @@ async fn main() -> Result<()>{
 ///
 /// # Returns 
 /// * a List of indexed_pages, i.e { a page id, uri, stems (from stemming Alg)}
-async fn build_database() -> Result<Vec<Record>> {
+async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
     let article_count = 1..ARTICLE_COUNT + 1;//.collect::<Vec<i32>>();
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
+
+    let stemmer = match stemmer {
+        PORTER => SimplePorterStemmer{},
+    };
 
     let db =  futures::stream::iter(article_count.into_iter().map(|_| async move {
         match reqwest::get("https://en.wikipedia.org/w/api.php?action=query&generator=random&grnnamespace=0&grnlimit=1&prop=info%7Cextracts&inprop=url&explaintext&format=json").await {
@@ -49,7 +60,7 @@ async fn build_database() -> Result<Vec<Record>> {
                     response.query.pages.iter().map(|page| Record {
                         id: page.0.to_string(),
                         uri: page.1.fullurl.to_string(),//.clone(),
-                        stems: tally_words(stemmer(format!("{} {}",page.1.title ,page.1.extract.to_string()))), //include page title in indexing
+                        stems:  tally_words(stemmer.istem(format!("{} {}",page.1.title ,page.1.extract.to_string()))),
                         title: page.1.title.to_string(),
                     }).collect::<Vec<Record>>()
                 }
@@ -123,7 +134,7 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 /// # Arguments
 ///
 /// * `text` - the plaintext article from wikipedia
-fn stemmer(text: String) -> Vec<String> {
+fn _stemmer(text: String) -> Vec<String> {
     debug!("Stemming");
     let text  = text.as_str().to_lowercase();
     let tokenised_sentence = text.unicode_words();
