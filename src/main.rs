@@ -94,7 +94,9 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
                         record.stems.contains_key(&stem(&keyword.as_str().to_lowercase()))//find Records with matching stems in DB
                     )  
                     .collect::<Vec<_>>(),
-                    keyword.to_string()).unwrap();
+                    stem(&keyword.as_str().to_lowercase()))
+                    //keyword.to_string())
+                    .unwrap();
 
                 debug!("{:?}", search_results);
 
