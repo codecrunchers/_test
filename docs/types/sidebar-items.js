@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["ARTICLE_COUNT",""],["MECHANICAL_SYMPATHY_DIAL",""]],"struct":[["Page",""],["Pages",""],["Record","This is an 'indexed' article with keywords stemmed and summed"],["WikiResponse",""]],"type":[["Result",""]]});

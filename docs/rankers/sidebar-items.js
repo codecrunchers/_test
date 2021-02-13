@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["WordCountRanker","Trivial Ranker, will just rank on hit count"]],"trait":[["Ranker","A Ranker interface/trait, it's passed the DB Record and returns a 'rank' sorted list of same no traits for collections yet in rust, so this is verbose to abstract"]]});

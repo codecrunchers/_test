@@ -29,7 +29,7 @@ impl Ranker for WordCountRanker {
             .iter()
             .map(|record| {
                 (
-                    record.stems.get(keyword.as_str()).unwrap_or(&0).clone(),
+                    *record.stems.get(keyword.as_str()).unwrap_or(&0),
                     record.uri.to_string(),
                 )
             })
