@@ -119,7 +119,6 @@ fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 /// # Arguments
 ///
 /// * `text` - the plaintext article from wikipedia
-/// * `uri` - for feedback only
 fn stemmer(text: String) -> Vec<String> {
     debug!("Stemming");
     let text  = text.as_str().to_lowercase();
@@ -156,9 +155,9 @@ mod tests{
     #[test]
     fn test_stemmer(){
         let sentence =" he ran she runs they run he is a runner".to_string();
-        assert_eq!(10, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence));
+        assert_eq!(10, stemmer(sentence.clone()).len(), "{:?}", stemmer(sentence));
 
         let sentence = "".to_string();
-        assert_eq!(0, stemmer(sentence.clone(), "".into()).len(), "{:?}", stemmer(sentence))
+        assert_eq!(0, stemmer(sentence.clone()).len(), "{:?}", stemmer(sentence))
     }
 }
