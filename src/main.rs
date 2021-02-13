@@ -9,7 +9,7 @@ use serde_json::from_str as marshaller;
 use std::{io, io::prelude::*};
 use porter_stemmer::stem;
 use unicode_segmentation::UnicodeSegmentation;
-use rankers::{NaiveWordCounterRanker, Ranker};
+use rankers::{NaiveRanker, Ranker};
 
 
 #[tokio::main]
@@ -48,7 +48,7 @@ async fn build_database() -> Result<Vec<Record>> {
         .await
         .into_iter()
         .flat_map(|indexed_page| indexed_page)       
-        .filter(|indexed_page| indexed_page.id != "") //failed calls stipped
+        .filter(|indexed_page| indexed_page.id != "") //failed calls stripped
         .collect::<Vec<Record>>();
 
 
@@ -65,7 +65,7 @@ async fn build_database() -> Result<Vec<Record>> {
 fn enable_search_mode(mut db: Vec<Record>) ->  Result<()> {
 
    println!("\r\n\r\nWelcome to WikiSearch: enter a keyword");
-   let results = NaiveWordCounterRanker::rank1(&db, "alan".to_string());
+   let results = NaiveRanker::rank(&db, "alan".to_string());
    let mut results = results.unwrap();
    results.sort();
    println!("{:?}", results);
