@@ -52,7 +52,7 @@ async fn main() -> Result<()>{
 /// # Returns 
 /// * a List of indexed_pages, i.e { a page id, uri, stems (from stemming Alg)}
 async fn build_database(stemmer: Stemmer) -> Result<Vec<Record>> {
-    let article_count = 1..ARTICLE_COUNT + 1;//.collect::<Vec<i32>>();
+    let article_count = 1..ARTICLE_COUNT + 1;//counter for iterator
     println!("Fetching {} Random Wikipedia articles", ARTICLE_COUNT);
 
     let stemmer = match stemmer {
